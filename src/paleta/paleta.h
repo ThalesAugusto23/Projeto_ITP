@@ -1,6 +1,5 @@
 #include <fstream>
 #include <string>
-#include <sstream>
 #include "../sequencia/sequencia.h"
 
 struct Cor {
@@ -20,19 +19,11 @@ class Paleta {
     }
 
     Cor converter(std::string s) {
-        std::stringstream ss;
         int r, g, b;
 
-        ss << std::hex << s.substr(1, 2);
-        ss >> r;
-        ss.clear();
-
-        ss << std::hex << s.substr(3, 2);
-        ss >> g;
-        ss.clear();
-
-        ss << std::hex << s.substr(5, 2);
-        ss >> b;
+        r = std::stoi(s.substr(1, 2), nullptr, 16);
+        g = std::stoi(s.substr(3, 2), nullptr, 16);
+        b = std::stoi(s.substr(5, 2), nullptr, 16);
 
         Cor cor = {r, g, b};
         return cor;
