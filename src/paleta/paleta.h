@@ -38,7 +38,6 @@ public:
     }
 
     void adicionarCor(Cor cor) {
-
         cores.adicionar(cor);
     }
 
