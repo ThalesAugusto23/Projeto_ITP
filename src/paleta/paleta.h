@@ -1,6 +1,6 @@
 #include <fstream>
 #include <string>
-#include <cstdlib>
+#include <sstream>
 #include "../sequencia/sequencia.h"
 
 struct Cor {
@@ -13,63 +13,28 @@ class Paleta {
     void lerArquivo(const std::string& arquivo) {
         std::ifstream hexx(arquivo);
         std::string s;
-        for (int i = 0; i < 32; i++)
-        {
-            hexx >> s;
+        
+        while(std::getline(hexx, s)) {
             cores.adicionar(converter(s));
         }
-        
-
     }
 
     Cor converter(std::string s) {
-        Cor cor;
-        int aux;
-        int aux2;
-        int r,g,b;
-        for(int i = 1; i < s.size(); i+2) {
-            if (s[i] == 'A') {
-                aux = 10;
-            } else if (s[i] == 'B'){
-                aux = 11;
-            } else if (s[i] == 'C'){
-                aux = 12;
-            } else if (s[i] == 'D'){
-                aux = 13;
-            } else if (s[i] == 'E'){
-                aux = 14;
-            } else if (s[i] == 'F'){
-                aux = 15;
-            } else {
-                aux = s[i] - '0';
-            }
+        std::stringstream ss;
+        int r, g, b;
 
-            if (s[i+1] == 'A') {
-                aux2 = 10;
-            } else if (s[i+1] == 'B'){
-                aux2 = 11;
-            } else if (s[i+1] == 'C'){
-                aux2 = 12;
-            } else if (s[i+1] == 'D'){
-                aux2 = 13;
-            } else if (s[i+1] == 'E'){
-                aux2 = 14;
-            } else if (s[i+1] == 'F'){
-                aux2 = 15;
-            } else {
-                aux2 = s[i+1] - '0';
-            }
+        ss << std::hex << s.substr(1, 2);
+        ss >> r;
+        ss.clear();
 
-            if (i < 2) {
-                r = 16*aux + aux2;
-            } else if (i < 4) {
-                g = 16*aux + aux2;
-            } else {
-                b = 16*aux + aux2;
-            }
-            
-        }
-        cor = {r, g, b};
+        ss << std::hex << s.substr(3, 2);
+        ss >> g;
+        ss.clear();
+
+        ss << std::hex << s.substr(5, 2);
+        ss >> b;
+
+        Cor cor = {r, g, b};
         return cor;
     }
 
