@@ -21,6 +21,10 @@ public:
         dados = new T[capacidade];
     }
 
+    ~Sequencia() {
+        delete[] dados;
+    }
+
     int obterTamanho() {
         return tamanho;
     }
