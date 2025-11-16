@@ -25,8 +25,7 @@ class Paleta {
         g = std::stoi(s.substr(3, 2), nullptr, 16);
         b = std::stoi(s.substr(5, 2), nullptr, 16);
 
-        Cor cor = {r, g, b};
-        return cor;
+        return Cor{r,g,b};
     }
 
 
@@ -42,10 +41,13 @@ public:
     }
 
     int obterTamanho(){
-        cores.obterTamanho();
+        return cores.obterTamanho();
     }
 
     Cor obterCor(int indice) {
+        if (indice < 0 || indice >= cores.obterTamanho()) {
+            return Cor{0, 0, 0};
+        }
         return cores[indice];
     }
 
