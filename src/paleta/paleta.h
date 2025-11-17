@@ -12,9 +12,12 @@ class Paleta {
     void lerArquivo(const std::string& arquivo) {
         std::ifstream hexx(arquivo);
         std::string s;
-        
-        while(std::getline(hexx, s)) {
-            cores.adicionar(converter(s));
+        if (hexx.is_open()) {
+            while(std::getline(hexx, s)) {
+                cores.adicionar(converter(s));
+            }
+        } else {
+            std::cerr << "Erro ao abrir arquivo";
         }
     }
 
