@@ -1,99 +1,193 @@
+#include <iostream>
+#include <fstream>
 #include <cmath>
-#include <random>
+#include <cstdlib>
+
 
 class Terreno {
-    int tamanho;
-    float *matriz;
+int linhas; // quantidade de linhas da matriz
+int colunas; // quantidade de colunas da matriz
+float *altitudes; // matriz dinâmica de altitudes
 
+    //Diamond Step: calcula o ponto central de um quadrado
+void passoDiamond(int x, int y, int tamanho, float desloc) {
+    int meio = tamanho / 2;
 
-    float randFloat(float amplitude) {
-        static std::mt19937 gen(
-            std::chrono::steady_clock::now().time_since_epoch().count()
-        );
-        std::uniform_real_distribution<float> dist(-amplitude, amplitude);
-        return dist(gen);
+    float a = at(x, y);
+    float b = at(x, y + tamanho);
+    float c = at(x + tamanho, y);
+    float d = at(x + tamanho, y + tamanho);
+
+    float media = (a + b + c + d) / 4.0f;
+    float ruido = (rand() % 2000) / 1000.0f - 1.0f;
+
+    // rand() % 2000 --> numero aleatório entre 0 a 1999
+    // / 1000.0f - 1.0f --> divide por 1000 e subtrai 1, logo o intervalo será de -1 a 1
+    // isso é ruído e nao rugosidade
+
+    at(x + meio, y + meio) = media + desloc * ruido;
+}
+
+// --- Função auxiliar para o Square Step ---
+float mediaSquare(int x, int y, int tamanho, float desloc) {
+    float soma = 0.0f;
+    int contador = 0;
+    int meio = tamanho / 2;
+    
+    // calculamos a media dos pontos ao redor do ponto central
+
+    // CIMA
+    if (x - meio >= 0) {
+        soma += at(x - meio, y);
+        contador++;
     }
 
-    void diamondStep() {
-        int passo = tamanho-1;
-        while (passo > 1) {
-            for (int i = 0; i < tamanho-1; i +=(tamanho-1)/2)
-            {
-            for (int j = 0; j < tamanho-1; j +=(tamanho-1)/2)
-            {
-                float c1 = matriz[i*tamanho+j];
-                float c2 = matriz[(i+tamanho-1) * tamanho + j];
-                float c3 = matriz[i*tamanho + (j + tamanho-1)];
-                float c4 = matriz[(i+tamanho-1) * tamanho + j + tamanho - 1];
+    // BAIXO
+    if (x + meio < linhas) {
+        soma += at(x + meio, y);
+        contador++;
+    }
 
-                float media = (c1 + c2 + c3 + c4) / 4.0;
+    // ESQUERDA
+    if (y - meio >= 0) {
+        soma += at(x, y - meio);
+        contador++;
+    }
 
-                matriz[((tamanho-1)/2) * tamanho + ((tamanho-1)/2)] = media + randFloat(10.0);
+    // DIREITA
+    if (y + meio < colunas) {
+        soma += at(x, y + meio);
+        contador++;
+    }
+    
+    // os contadores servem para indicar se existem ou nao pontos ao redor do ponto central
+
+    // adiciona ruído
+    float media = soma / contador;
+    float ruido = (rand() % 2000) / 1000.0f - 1.0f;
+
+    return media + desloc * ruido;
+}
+
+// --- Square Step ---
+void passoSquare(int x, int y, int tamanho, float desloc) {
+    int meio = tamanho / 2;
+
+    if (x - meio >= 0)
+        at(x - meio, y) = mediaSquare(x - meio, y, tamanho, desloc);
+
+    if (x + meio < linhas)
+        at(x + meio, y) = mediaSquare(x + meio, y, tamanho, desloc);
+
+    if (y - meio >= 0)
+        at(x, y - meio) = mediaSquare(x, y - meio, tamanho, desloc);
+
+    if (y + meio < colunas)
+        at(x, y + meio) = mediaSquare(x, y + meio, tamanho, desloc);
+}
+
+//Diamond-Square completo
+void gerarTerreno(float rugosidade) {
+    int tamanho = linhas - 1;
+    float desloc = tamanho * rugosidade;
+
+    // Inicializa cantos aleatórios
+    at(0, 0) = rand() % 10000; // valores aleatorios de 0 a 9999
+    at(0, tamanho) = rand() % 10000;
+    at(tamanho, 0) = rand() % 10000;
+    at(tamanho, tamanho) = rand() % 10000;
+
+    while (tamanho > 1) { // enquanto houver quadrados para dividir
+        int metade = tamanho / 2;
+
+        // Diamond (central)
+        for (int x = 0; x < linhas - 1; x += tamanho) {
+            for (int y = 0; y < colunas - 1; y += tamanho) {
+                passoDiamond(x, y, tamanho, desloc);
             }
-            }
-            passo /= 2;
         }
-        
+
+        // Square (ao redor)
+        for (int x = 0; x < linhas - 1; x += tamanho) {
+            for (int y = 0; y < colunas - 1; y += tamanho) {
+                passoSquare(x + metade, y + metade, tamanho, desloc);
+            }
+        }
+
+        tamanho /= 2;
+        desloc *= rugosidade;
     }
-
-    void squareStep() {
-        int passo = tamanho-1;
-        while(passo > 1) {
-            int meio = passo / 2;
-            for (int y = 0; y < tamanho-1; y += passo) {
-                    for (int x = 0; x < tamanho - 1; x += passo) {
-
-                        float c1 = matriz[y*tamanho+x];
-                        float c2 = matriz[(y+passo)*tamanho+x];
-                        float c3 = matriz[y*tamanho+y+passo];
-                        float c4 = matriz[(y+passo)*tamanho+(x+passo)];
-
-                        float media = (c1 + c2 + c3 + c4) / 4.0f;
-
-                        matriz[(y+meio)*tamanho+x+meio] = media + randFloat(10.0);
-                    }
-                }
-                passo /= 2;
-
-    }
-    }
+}
 
 public:
+    Terreno(int n, float rugosidade = 0.5) {
+        linhas = pow(2, n) + 1;
+        colunas = linhas;
+        altitudes = new float[linhas * colunas];
 
-    Terreno(int n){
-        tamanho = pow(2, n) + 1;
-        matriz = new float[tamanho*tamanho];
-        gerarMapa();
+        gerarTerreno(rugosidade);
+
     }
 
     ~Terreno() {
-
+        delete[] altitudes; // libera memoria
     }
 
-    int obterLargura() {
-        return tamanho;
+    //Função de acesso na matriz 1D
+    inline float& at(int x, int y) {
+        return altitudes[x * colunas + y];
     }
     
-    int obterProfundidade() {
-        return tamanho;
+    int obterLargura(){ 
+        return colunas; 
     }
 
-    void gerarMapa() {
-        unsigned seed = std::chrono::steady_clock::now().time_since_epoch().count();
-        std::mt19937 gen(seed);
-        
-        std::uniform_int_distribution<> distrib(1, 100);
-
-        matriz[0*tamanho+0] = distrib(gen);
-        matriz[0*tamanho+tamanho-1] = distrib(gen);
-        matriz[(tamanho-1)*tamanho] = distrib(gen);
-        matriz[(tamanho-1)*tamanho+tamanho-1] = distrib(gen);
-
-        diamondStep();
-        squareStep();
-        
+    int obterProfundidade(){ 
+        return linhas; 
     }
 
-    float* obterMatriz() { return matriz; }
+    float obterAltitude(int x, int y) {
+        return at(x, y);
+    }
 
+    // Salvar em arquivo
+    void salvarTerreno(const std::string &nome) const {
+        std::ofstream arq(nome);
+
+
+        arq << linhas << " " << colunas << "\n";
+
+
+        for (int i = 0; i < linhas; i++) {
+        for (int j = 0; j < colunas; j++) {
+        arq << altitudes[i*colunas+j] << " ";
+        }
+        arq << "\n";
+        }
+
+        arq.close();
+    }
+
+
+    // Ler de arquivo
+    void lerTerreno(const std::string &nome) {
+        std::ifstream arq(nome);
+
+        int novaL, novaC;
+        arq >> novaL >> novaC;
+
+        if(linhas != novaL || novaC != colunas) {
+            delete[] altitudes;
+            colunas = novaC;
+            linhas = novaL;
+            altitudes = new float[linhas * colunas];
+        }
+
+        for (int i = 0; i < linhas; i++)
+        for (int j = 0; j < colunas; j++)
+        arq >> altitudes[i * colunas + j];
+
+
+        arq.close();
+    }
 };
