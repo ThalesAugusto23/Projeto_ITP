@@ -50,6 +50,7 @@ public:
         arquivo >> maxCor;
 
         delete [] matriz;
+        matriz = nullptr;
 
         matriz = new Pixel[altura * largura];
 

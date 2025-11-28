@@ -28,15 +28,59 @@ TEST_CASE("Terreno gerado tem tamanho correto para n=3") {
     CHECK(t.obterProfundidade() == 9);
 }
 
-// --- 2) Teste parcial: rugosidade = 0 gera terreno uniforme ---
-TEST_CASE("Rugosidade zero gera terreno uniforme (Diamond-Square)") {
-    Terreno t(3, 0.0f);  // tamanho 9x9
+//
 
-    float h0 = t.obterAltitude(0, 0);
+TEST_CASE("Rugosidade zero remove ruído do algoritmo Diamond-Square") {
 
-    for (int i = 0; i < t.obterProfundidade(); i++)
-        for (int j = 0; j < t.obterLargura(); j++)
-            CHECK(t.obterAltitude(i, j) == doctest::Approx(h0));
+    Terreno t(3, 0.0f);
+
+ // O valor central deve ser EXATAMENTE a média dos cantos
+
+    int a = t.obterAltitude(0,0);
+    int b = t.obterAltitude(0,8);
+    int c = t.obterAltitude(8,0);
+    int d = t.obterAltitude(8,8);
+
+    int mediaEsperada = (a + b + c + d) / 4.0f;
+
+    CHECK(t.obterAltitude(4,4) ==doctest::Approx(mediaEsperada));
+}
+
+TEST_CASE("Rugosidade zero: todas as médias Diamond devem ser exatas") {
+
+    Terreno t(3, 0.0f); // 9x9
+
+    int N = t.obterLargura();
+
+    REQUIRE(N == 9);
+
+    int tamanho = N - 1; // começa em 8
+
+ // Para cada nível do algoritmo Diamond-Square
+
+    while (tamanho > 1) {
+
+        int meio = tamanho / 2;
+
+        for (int x = 0; x < N - 1; x += tamanho) {
+
+            for (int y = 0; y < N - 1; y += tamanho) {
+
+                int a = t.obterAltitude(x, y);
+                int b = t.obterAltitude(x, y + tamanho);
+                int c = t.obterAltitude(x + tamanho, y);
+                int d = t.obterAltitude(x + tamanho, y + tamanho);
+
+                int media = (a + b + c + d) / 4.0f;
+
+                CHECK(t.obterAltitude(x + meio, y + meio) ==doctest::Approx(media));
+
+            }
+
+        }
+
+    tamanho /= 2;
+ }
 }
 
 // --- 3) Testar salvar arquivo ---
@@ -94,4 +138,17 @@ TEST_CASE("Carregar terreno de arquivo") {
     CHECK(t.obterAltitude(2, 0) == doctest::Approx(7));
     CHECK(t.obterAltitude(2, 1) == doctest::Approx(8));
     CHECK(t.obterAltitude(2, 2) == doctest::Approx(9));
+}
+
+TEST_CASE("") {
+    Paleta p;
+    p.adicionarCor({0, 0, 0});
+    p.adicionarCor({255,0, 0});
+    p.adicionarCor({255,255, 0});
+
+    Terreno t(3);
+    t.lerTerreno("entrada_3x3.txt");
+
+    t.criarImagem(p);
+
 }

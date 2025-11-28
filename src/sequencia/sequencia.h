@@ -25,7 +25,7 @@ public:
         delete[] dados;
     }
 
-    int obterTamanho() {
+    int obterTamanho() const {
         return tamanho;
     }
 
@@ -37,7 +37,7 @@ public:
         tamanho++;
     }
 
-    T& operator[](int indice) {
+    const T& operator[](int indice) const {
         if (indice < 0 || indice >= tamanho) {
             std::cerr << "Erro: índice inválido";
         }

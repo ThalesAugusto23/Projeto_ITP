@@ -43,11 +43,11 @@ public:
         cores.adicionar(cor);
     }
 
-    int obterTamanho(){
+    int obterTamanho() const {
         return cores.obterTamanho();
     }
 
-    Cor obterCor(int indice) {
+    Cor obterCor(int indice) const {
         if (indice < 0 || indice >= cores.obterTamanho()) {
             return Cor{0, 0, 0};
         }

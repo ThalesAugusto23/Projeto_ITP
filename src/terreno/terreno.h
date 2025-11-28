@@ -2,24 +2,24 @@
 #include <fstream>
 #include <cmath>
 #include <cstdlib>
-
+#include "../imagem/imagem.h"
 
 class Terreno {
 int linhas; // quantidade de linhas da matriz
 int colunas; // quantidade de colunas da matriz
-float *altitudes; // matriz dinâmica de altitudes
+int *altitudes; // matriz dinâmica de altitudes
 
     //Diamond Step: calcula o ponto central de um quadrado
 void passoDiamond(int x, int y, int tamanho, float desloc) {
     int meio = tamanho / 2;
 
-    float a = at(x, y);
-    float b = at(x, y + tamanho);
-    float c = at(x + tamanho, y);
-    float d = at(x + tamanho, y + tamanho);
+    int a = at(x, y);
+    int b = at(x, y + tamanho);
+    int c = at(x + tamanho, y);
+    int d = at(x + tamanho, y + tamanho);
 
-    float media = (a + b + c + d) / 4.0f;
-    float ruido = (rand() % 2000) / 1000.0f - 1.0f;
+    int media = (a + b + c + d) / 4;
+    float ruido = (rand() % 2000) / 1000 - 1;
 
     // rand() % 2000 --> numero aleatório entre 0 a 1999
     // / 1000.0f - 1.0f --> divide por 1000 e subtrai 1, logo o intervalo será de -1 a 1
@@ -29,8 +29,8 @@ void passoDiamond(int x, int y, int tamanho, float desloc) {
 }
 
 // --- Função auxiliar para o Square Step ---
-float mediaSquare(int x, int y, int tamanho, float desloc) {
-    float soma = 0.0f;
+int mediaSquare(int x, int y, int tamanho, int desloc) {
+    int soma = 0;
     int contador = 0;
     int meio = tamanho / 2;
     
@@ -63,14 +63,14 @@ float mediaSquare(int x, int y, int tamanho, float desloc) {
     // os contadores servem para indicar se existem ou nao pontos ao redor do ponto central
 
     // adiciona ruído
-    float media = soma / contador;
-    float ruido = (rand() % 2000) / 1000.0f - 1.0f;
+    int media = soma / contador;
+    float ruido = (rand() % 2000) / 1000 - 1;
 
     return media + desloc * ruido;
 }
 
 // --- Square Step ---
-void passoSquare(int x, int y, int tamanho, float desloc) {
+void passoSquare(int x, int y, int tamanho, int desloc) {
     int meio = tamanho / 2;
 
     if (x - meio >= 0)
@@ -89,7 +89,7 @@ void passoSquare(int x, int y, int tamanho, float desloc) {
 //Diamond-Square completo
 void gerarTerreno(float rugosidade) {
     int tamanho = linhas - 1;
-    float desloc = tamanho * rugosidade;
+    int desloc = tamanho * rugosidade;
 
     // Inicializa cantos aleatórios
     at(0, 0) = rand() % 10000; // valores aleatorios de 0 a 9999
@@ -123,7 +123,7 @@ public:
     Terreno(int n, float rugosidade = 0.5) {
         linhas = pow(2, n) + 1;
         colunas = linhas;
-        altitudes = new float[linhas * colunas];
+        altitudes = new int[linhas * colunas];
 
         gerarTerreno(rugosidade);
 
@@ -134,7 +134,7 @@ public:
     }
 
     //Função de acesso na matriz 1D
-    inline float& at(int x, int y) {
+    inline int& at(int x, int y) {
         return altitudes[x * colunas + y];
     }
     
@@ -180,7 +180,7 @@ public:
             delete[] altitudes;
             colunas = novaC;
             linhas = novaL;
-            altitudes = new float[linhas * colunas];
+            altitudes = new int[linhas * colunas];
         }
 
         for (int i = 0; i < linhas; i++)
@@ -189,5 +189,52 @@ public:
 
 
         arq.close();
+    }
+
+    Imagem criarImagem (const Paleta& p) {
+        Imagem img(colunas, linhas);
+
+        int totalCores = p.obterTamanho();
+        if (totalCores == 0) {
+            std::cerr << "Paleta vazia!\n";
+            return img; // imagem preta
+        }
+
+        // Encontrar menor e maior altitude para mapear para a paleta
+        int minAlt = altitudes[0];
+        int maxAlt = altitudes[0];
+
+        for (int i = 0; i < linhas * colunas; i++) {
+            if (altitudes[i] < minAlt) minAlt = altitudes[i];
+            if (altitudes[i] > maxAlt) maxAlt = altitudes[i];
+        }
+
+        int altBase = at(0,0); // altitude do ponto superior-esquerdo
+
+        for (int x = 0; x < linhas; x++) {
+            for (int y = 0; y < colunas; y++) {
+
+                int alt = at(x,y);
+
+                // normaliza altitude para índice da paleta
+                float t = float(alt - minAlt) / float(maxAlt - minAlt);
+                int indice = t * (totalCores - 1);
+
+                Cor c = p.obterCor(indice);
+
+                // --- escurecer caso altitude < altitude(0,0) ---
+                if (alt < altBase) {
+                    c.r = c.r * 0.8;
+                    c.g = c.g * 0.8;
+                    c.b = c.b * 0.8;
+                }
+
+                img(y, x) = c; // lembre-se do operador img(x,y)
+            }
+        }
+
+        return img;
+
+
     }
 };
