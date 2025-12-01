@@ -19,7 +19,7 @@ void passoDiamond(int x, int y, int tamanho, float desloc) {
     int d = at(x + tamanho, y + tamanho);
 
     int media = (a + b + c + d) / 4;
-    float ruido = (rand() % 2000) / 1000 - 1;
+    float ruido = (rand() % 2000) / 1000.0f - 1.0f;
 
     // rand() % 2000 --> numero aleatório entre 0 a 1999
     // / 1000.0f - 1.0f --> divide por 1000 e subtrai 1, logo o intervalo será de -1 a 1
@@ -29,7 +29,7 @@ void passoDiamond(int x, int y, int tamanho, float desloc) {
 }
 
 // --- Função auxiliar para o Square Step ---
-int mediaSquare(int x, int y, int tamanho, int desloc) {
+int mediaSquare(int x, int y, int tamanho, float desloc) {
     int soma = 0;
     int contador = 0;
     int meio = tamanho / 2;
@@ -64,38 +64,26 @@ int mediaSquare(int x, int y, int tamanho, int desloc) {
 
     // adiciona ruído
     int media = soma / contador;
-    float ruido = (rand() % 2000) / 1000 - 1;
+    float ruido = (rand() % 2000) / 1000.0f - 1.0f;
 
     return media + desloc * ruido;
 }
 
 // --- Square Step ---
-void passoSquare(int x, int y, int tamanho, int desloc) {
-    int meio = tamanho / 2;
-
-    if (x - meio >= 0)
-        at(x - meio, y) = mediaSquare(x - meio, y, tamanho, desloc);
-
-    if (x + meio < linhas)
-        at(x + meio, y) = mediaSquare(x + meio, y, tamanho, desloc);
-
-    if (y - meio >= 0)
-        at(x, y - meio) = mediaSquare(x, y - meio, tamanho, desloc);
-
-    if (y + meio < colunas)
-        at(x, y + meio) = mediaSquare(x, y + meio, tamanho, desloc);
+void passoSquare(int x, int y, int tamanho, float desloc) {
+    at(x,y) = mediaSquare(x, y, tamanho, desloc);
 }
 
 //Diamond-Square completo
 void gerarTerreno(float rugosidade) {
     int tamanho = linhas - 1;
-    int desloc = tamanho * rugosidade;
+    float desloc = tamanho * rugosidade;
 
     // Inicializa cantos aleatórios
-    at(0, 0) = rand() % 10000; // valores aleatorios de 0 a 9999
-    at(0, tamanho) = rand() % 10000;
-    at(tamanho, 0) = rand() % 10000;
-    at(tamanho, tamanho) = rand() % 10000;
+    at(0, 0) = rand() % 5000; // valores aleatorios de 0 a 9999
+    at(0, tamanho) = rand() % 5000;
+    at(tamanho, 0) = rand() % 5000;
+    at(tamanho, tamanho) = rand() % 5000;
 
     while (tamanho > 1) { // enquanto houver quadrados para dividir
         int metade = tamanho / 2;
@@ -108,9 +96,9 @@ void gerarTerreno(float rugosidade) {
         }
 
         // Square (ao redor)
-        for (int x = 0; x < linhas - 1; x += tamanho) {
-            for (int y = 0; y < colunas - 1; y += tamanho) {
-                passoSquare(x + metade, y + metade, tamanho, desloc);
+        for (int x = 0; x < linhas - 1; x += metade) {
+            for (int y = ((x/metade) % 2 == 0 ? metade : 0); y < colunas - 1; y += tamanho) {
+                passoSquare(x, y, tamanho, desloc);
             }
         }
 
@@ -154,15 +142,13 @@ public:
     void salvarTerreno(const std::string &nome) const {
         std::ofstream arq(nome);
 
-
         arq << linhas << " " << colunas << "\n";
 
-
         for (int i = 0; i < linhas; i++) {
-        for (int j = 0; j < colunas; j++) {
-        arq << altitudes[i*colunas+j] << " ";
-        }
-        arq << "\n";
+            for (int j = 0; j < colunas; j++) {
+                arq << altitudes[i*colunas+j] << " ";
+            }
+            arq << "\n";
         }
 
         arq.close();
@@ -209,12 +195,13 @@ public:
             if (altitudes[i] > maxAlt) maxAlt = altitudes[i];
         }
 
-        int altBase = at(0,0); // altitude do ponto superior-esquerdo
+        // int altBase = at(0,0); // altitude do ponto superior-esquerdo
 
-        for (int x = 0; x < linhas; x++) {
-            for (int y = 0; y < colunas; y++) {
+        for (int x = 1; x < linhas; x++) {
+            for (int y = 1; y < colunas; y++) {
 
-                int alt = at(x,y);
+                int altBase = at(x-1,y-1);
+                int alt = at(x, y);
 
                 // normaliza altitude para índice da paleta
                 float t = float(alt - minAlt) / float(maxAlt - minAlt);
@@ -224,9 +211,9 @@ public:
 
                 // --- escurecer caso altitude < altitude(0,0) ---
                 if (alt < altBase) {
-                    c.r = c.r * 0.8;
-                    c.g = c.g * 0.8;
-                    c.b = c.b * 0.8;
+                    c.r = c.r * 0.7;
+                    c.g = c.g * 0.7;
+                    c.b = c.b * 0.7;
                 }
 
                 img(y, x) = c; // lembre-se do operador img(x,y)
