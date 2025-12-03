@@ -77,10 +77,10 @@ void passoSquare(int x, int y, int tamanho, float desloc) {
 //Diamond-Square completo
 void gerarTerreno(float rugosidade) {
     int tamanho = linhas - 1;
-    float desloc = tamanho * rugosidade;
+    float desloc = tamanho*3;
 
     // Inicializa cantos aleatórios
-    at(0, 0) = rand() % 5000; // valores aleatorios de 0 a 9999
+    at(0, 0) = rand() % 5000; // valores aleatorios de 0 a 4999
     at(0, tamanho) = rand() % 5000;
     at(tamanho, 0) = rand() % 5000;
     at(tamanho, tamanho) = rand() % 5000;

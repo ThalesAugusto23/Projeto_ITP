@@ -17,7 +17,7 @@ class Paleta {
                 cores.adicionar(converter(s));
             }
         } else {
-            std::cerr << "Erro ao abrir arquivo";
+            std::cerr << "Erro ao abrir arquivo!\n";
         }
     }
 
