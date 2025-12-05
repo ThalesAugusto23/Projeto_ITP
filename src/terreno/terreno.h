@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdlib>
 #include "../imagem/imagem.h"
+#include <iomanip>
 
 class Terreno {
 int linhas; // quantidade de linhas da matriz
@@ -43,7 +44,7 @@ int mediaSquare(int x, int y, int tamanho, float desloc) {
     }
 
     // BAIXO
-    if (x + meio < linhas) {
+    if (x + meio <= linhas-1) {
         soma += at(x + meio, y);
         contador++;
     }
@@ -55,7 +56,7 @@ int mediaSquare(int x, int y, int tamanho, float desloc) {
     }
 
     // DIREITA
-    if (y + meio < colunas) {
+    if (y + meio <= colunas-1) {
         soma += at(x, y + meio);
         contador++;
     }
@@ -71,13 +72,13 @@ int mediaSquare(int x, int y, int tamanho, float desloc) {
 
 // --- Square Step ---
 void passoSquare(int x, int y, int tamanho, float desloc) {
-    at(x,y) = mediaSquare(x, y, tamanho, desloc);
+    at(x, y) = mediaSquare(x, y, tamanho, desloc);
 }
 
 //Diamond-Square completo
 void gerarTerreno(float rugosidade) {
     int tamanho = linhas - 1;
-    float desloc = tamanho*3;
+    float desloc = tamanho*2.0f;
 
     // Inicializa cantos aleatórios
     at(0, 0) = rand() % 5000; // valores aleatorios de 0 a 4999
@@ -96,8 +97,8 @@ void gerarTerreno(float rugosidade) {
         }
 
         // Square (ao redor)
-        for (int x = 0; x < linhas - 1; x += metade) {
-            for (int y = ((x/metade) % 2 == 0 ? metade : 0); y < colunas - 1; y += tamanho) {
+        for (int x = 0; x < linhas; x += metade) {
+            for (int y = ((x%tamanho == 0 ? metade : 0)); y < colunas; y += tamanho) {
                 passoSquare(x, y, tamanho, desloc);
             }
         }
