@@ -198,8 +198,8 @@ public:
 
         // int altBase = at(0,0); // altitude do ponto superior-esquerdo
 
-        for (int x = 1; x < linhas; x++) {
-            for (int y = 1; y < colunas; y++) {
+        for (int x = 0; x < linhas; x++) {
+            for (int y = 0; y < colunas; y++) {
 
                 int altBase = at(x-1,y-1);
                 int alt = at(x, y);
@@ -220,9 +220,14 @@ public:
                 img(y, x) = c; // lembre-se do operador img(x,y)
             }
         }
-
+        
+        for (int x = 0; x < colunas; x++) {
+            img(x, 0) = img(x+1, 1);
+        }
+        for (int y = 0; y < colunas; y++) {
+            img(0, y) = img(1, y+1);
+        }
+        
         return img;
-
-
     }
 };
